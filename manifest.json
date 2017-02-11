@@ -1,0 +1,35 @@
+
+{
+  "short_name": "Hamid Raza",
+  "name": "Hamid Raza\nFull Stack Developer",
+  "version": "0.0.5",
+  "icons": [{
+    "src": "/fav/favicon-16x16.png",
+    "sizes": "16x16",
+    "type": "image/png"
+  }, {
+    "src": "/fav/favicon-32x32.png",
+    "sizes": "32x32",
+    "type": "image/png"
+  }, {
+    "src": "/fav/favicon-96x96.png",
+    "sizes": "96x96",
+    "type": "image/png"
+  }, {
+    "src": "/fav/favicon-128.png",
+    "sizes": "128x128",
+    "type": "image/png"
+  }, {
+    "src": "/fav/apple-touch-icon-144x144.png",
+    "sizes": "144x144",
+    "type": "image/png"
+  }, {
+    "src": "/fav/favicon-196x196.png",
+    "sizes": "196x196",
+    "type": "image/png"
+  }],
+  "start_url": "/?homescreen=1",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FECE08"
+}
