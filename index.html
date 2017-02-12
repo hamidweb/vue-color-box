@@ -31,205 +31,63 @@
 <meta name="msapplication-wide310x150logo" content="fav/mstile-310x150.png" />
 <meta name="msapplication-square310x310logo" content="fav/mstile-310x310.png" />
 
-<style>
-html {
-  background-color: #e9e9e9;
-  font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-}
-html { box-sizing: border-box; }
-*, *:before, *:after { box-sizing: inherit; }
-.d-f { display: flex; }
-.f-1 { flex: 1; }
-.fw-w { flex-wrap: wrap; }
-.ai-c { align-items: center; }
-.jc-c { justify-content: center; }
-.jc-sb { justify-content: space-between; }
-.ta-c { text-align: center; }
-.fd-c { flex-direction: column; }
-.content {
-  max-width: 400px;
-  margin: 20px auto;
-  position: relative;
-}
-.box-wrap {
-  border: 1px solid #fff;
-  border-top: none;
-  border-left: none;
-  background-image: -webkit-linear-gradient(45deg,#efefef 25%,transparent 25%,transparent 75%,#efefef 75%,#efefef),
-    -webkit-linear-gradient(45deg,#efefef 25%,transparent 25%,transparent 75%,#efefef 75%,#efefef);
-  background-color: #fff;
-  background-position: 0 0,10px 10px;
-  background-size: 21px 21px;
-}
-.box-wrap.loading {
-  pointer-events: none;
-}
-.box-wrap .box {
-  width: 25%;
-  height: 0;
-  padding-top: 25%;
-  border: 1px solid #fff;
-  border-bottom: none;
-  border-right: none;
-  position: relative;
-  box-shadow: 0 0 14px rgba(0, 0, 0, .2);
-  cursor: pointer;
-  transform-origin: 100% 213.5px;
-}
-.box-wrap .box div {
-  transition: all .4s linear;
-  transform-style: preserve-3d;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: auto;
-  backface-visibility: hidden;
-}
-.box-wrap .box div.front {
-  background-color: #ccc;
-  transform: rotateY(0deg);
-  z-index: 2;
-}
-.box-wrap .box div.back {
-  transform: rotateY(-180deg);
-  z-index: 1;
-}
-.box-wrap .box.active,
-.box-wrap .box.selected {
-  pointer-events: none;
-}
-.box-wrap .box.active {
-  cursor: default;
-}
-.box-wrap .box.active .front,
-.box-wrap .box.selected .front {
-  transform: rotateY(180deg);
-  z-index: 2;
-}
-.box-wrap .box.active .back,
-.box-wrap .box.selected .back {
-  transform: rotateY(0deg);
-  z-index: 1;
-}
-.box-wrap .box.active div.back:after {
-  content: '\2713';
-  display: inline-block;
-  border: 1px solid rgba(255, 255, 255, .7);
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  text-align: center;
-  line-height: 18px;
-  background-color: rgba(0,0,0,.2);
-  color: #fff;
-  box-shadow: 0 0 10px rgba(0, 0, 0, .5);
-  font-size: 9px;
-  animation: scale .2s cubic-bezier(0.64, 0.57, 0.67, 1.53) .3s forwards;
-  transform: scale(0);
-}
-.finished .msg-finished {
-  display: flex;
-}
-.msg-finished {
-  display: none;
-  position: absolute;
-  padding: 40px;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: auto;
-  background-color: rgba(255,255,255,.9);
-  z-index: 2;
-  animation: fadeIn .2s cubic-bezier(0.64, 0.57, 0.67, 1.53) .6s forwards;
-  opacity: 0;
-}
-.msg-finished h3 {
-  margin: 0;
-}
-.msg-finished .action {
-  width: 100%;
-}
-.msg-finished button {
-  display: inline-block;
-  border: none;
-  background: #ff0;
-  cursor: pointer;
-  padding: 10px 20px;
-  border-radius: 4px;
-}
-
-@keyframes scale {
-  0% {
-    transform: scale(0);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-.scores {
-  padding: 10px 2px;
-}
-.scores label {
-  opacity: 0.4;
-  font-weight: normal;
-}
-.scores .score {
-  font-weight: bold;
-}
-.scores .past-score {
-  font-size: 12px;
-}
-.scores .past-score label {
-  font-size: 10px;
-}
-</style>
+<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 
-<div id="app" :class="{finished: activeColors.length == colors.length / matchLimit}">
+<div id="app" :class="{finished: activeColors.length * matchLimit == colors.length}">
   <div class="content d-f fd-c">
 
-    <header class="main d-f ai-c jc-sb">
+    <header class="main d-f ai-fe jc-sb">
       <div class="scores">
-        <div class="score"><label>Score</label> {{timeSpent}}</div>
-        <div class="past-score" v-if="yourBest"><label>Your best</label> {{yourBest}}</div>
+        <div class="score"><label>Time </label> {{timeSpent}}<label>s</label></div>
+        <div class="past-score" v-if="yourBest"><label>Your best</label> {{yourBest}}s</div>
       </div>
-      <div></div>
+      <div class="settings">
+        <div class="icon" @click="showSettings = !showSettings"></div>
+        <div class="options" :class="{open: showSettings}">
+          <div class="close" @click="showSettings = false"></div>
+          <div class="option">
+            <label>
+              <span>Color limit</span>
+              <strong>{{colorLimit}}</strong>
+            </label>
+            <input type="range" min="2" max="50" class="field" v-model="colorLimit">
+          </div>
+          <div class="option">
+            <label>
+              <span>Match limit</span>
+              <strong>{{matchLimit}}</strong>
+            </label>
+            <input type="range" min="2" max="10" class="field" v-model="matchLimit">
+          </div>
+          <div class="action">
+            <button @click="() => {reset(); showSettings=false}">Reset</button>
+          </div>
+        </div>
+      </div>
     </header>
 
-    <div class="box-wrap f-1 d-f fw-w" :class="{loading: loading}">
-      <div class="box d-f"
-        v-for="(color, idx) in colors"
-        :title="color"
-        :class="{
-          active   : activeColors.includes(color),
-          selected : selectedIndex.includes(idx)
-        }"
-        @click.prevent="handleClick(idx)"
-      >
-        <div class="front f-1 d-f ai-c jc-c"></div>
-        <div class="back f-1 d-f ai-c jc-c" :style="{background: color}"></div>
+    <div class="pos-r z-1">
+      <div class="box-wrap f-1 d-f fw-w" :class="{loading}">
+        <div class="box d-f"
+          v-for="(color, idx) in colors"
+          :title="color"
+          @click.prevent="handleClick(idx)"
+          :class="{active: activeColors.includes(color), selected: selectedIndex.includes(idx)}"
+        >
+          <div class="front f-1 d-f ai-c jc-c"></div>
+          <div class="back f-1 d-f ai-c jc-c" :style="{background: color}"></div>
+        </div>
       </div>
-    </div>
 
-    <div class="msg-finished d-f fd-c jc-c ai-c ta-c">
-      <h3>Congratulations</h3>
-      <p>You have successfully completed the game.</p>
-      <div class="f-1"></div>
-      <div class="action">
-        <button @click="reset">Restart</button>
+      <div class="msg-finished d-f fd-c jc-c ai-c ta-c">
+        <h3>Congratulations</h3>
+        <p>You have successfully completed the game.</p>
+        <div class="f-1"></div>
+        <div class="action">
+          <button @click="() => {reset(); showSettings=false}">Restart</button>
+        </div>
       </div>
     </div>
 
@@ -238,88 +96,8 @@ html { box-sizing: border-box; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.10/vue.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.min.js"></script>
+<script src="script.js"></script>
 
-<script>
-const _APP = new Vue({
-  el: '#app',
-  data: {
-    colorLimit    : 8,
-    matchLimit    : 2,
-    colors        : [],
-    selectedIndex : [],
-    activeColors  : [],
-    loading       : false,
-    timeSpent     : 0,
-    scores        : [],
-    timerId       : null
-
-  },
-  watch: {
-    colorLimit() { this.reset(); },
-    matchLimit() { this.reset(); }
-  },
-  computed: {
-    yourBest() {
-      return this.scores.length ? Math.min(...this.scores) : false
-    }
-  },
-  methods: {
-    handleClick(idx) {
-      const color = this.colors[idx];
-      const firstSelectedColor = this.colors[this.selectedIndex[0]];
-      if(!this.selectedIndex.length) {
-        this.selectedIndex.push(idx);
-        return;
-      }
-      if(this.selectedIndex.length < this.matchLimit) {
-        if(firstSelectedColor == color) {
-          this.selectedIndex.push(idx);
-          if(this.selectedIndex.length == this.matchLimit) {
-            this.activeColors.push(color);
-            this.selectedIndex = [];
-          }
-        } else {
-          this.selectedIndex.push(idx);
-          this.loading = true;
-          setTimeout(() => {
-            this.loading = false;
-            this.selectedIndex = [];
-          }, 500);
-        }
-      }
-      if(this.activeColors.length * this.matchLimit == this.colors.length) {
-        this.scores.push(this.timeSpent);
-        if(this.timerId) clearInterval(this.timerId);
-
-        const key = `color-box-${this.colorLimit}-${this.matchLimit}`;
-        localStorage.setItem(key, JSON.stringify(this.scores));
-      }
-    },
-    reset() {
-      const colors = randomColor({count: this.colorLimit});
-      this.colors = [...Array(this.matchLimit)].map(v => colors)
-        .reduce((r, v) => [...r, ...v], [])
-        .sort(e => .5-Math.random());
-
-      this.selectedIndex = [];
-      this.activeColors = [];
-      this.timeSpent = 0;
-
-      const scores = localStorage.getItem(`color-box-${this.colorLimit}-${this.matchLimit}`) || '[]';
-      try {
-        this.scores = JSON.parse(scores);
-      } catch(e) {
-        this.scores = [];
-      }
-
-      this.timerId = setInterval(() => ++this.timeSpent, 1000);
-    }
-  },
-  mounted() {
-    this.reset();
-  }
-});
-</script>
 </body>
 </html>
 
