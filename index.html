@@ -43,11 +43,11 @@ html { box-sizing: border-box; }
 .fw-w { flex-wrap: wrap; }
 .ai-c { align-items: center; }
 .jc-c { justify-content: center; }
+.jc-sb { justify-content: space-between; }
 .ta-c { text-align: center; }
 .fd-c { flex-direction: column; }
 .content {
   max-width: 400px;
-  min-height: 400px;
   margin: 20px auto;
   position: relative;
 }
@@ -55,13 +55,19 @@ html { box-sizing: border-box; }
   border: 1px solid #fff;
   border-top: none;
   border-left: none;
+  background-image: -webkit-linear-gradient(45deg,#efefef 25%,transparent 25%,transparent 75%,#efefef 75%,#efefef),
+    -webkit-linear-gradient(45deg,#efefef 25%,transparent 25%,transparent 75%,#efefef 75%,#efefef);
+  background-color: #fff;
+  background-position: 0 0,10px 10px;
+  background-size: 21px 21px;
 }
 .box-wrap.loading {
   pointer-events: none;
 }
 .box-wrap .box {
-  width: 33.3333%;
-  height: 100px;
+  width: 25%;
+  height: 0;
+  padding-top: 25%;
   border: 1px solid #fff;
   border-bottom: none;
   border-right: none;
@@ -71,8 +77,7 @@ html { box-sizing: border-box; }
   transform-origin: 100% 213.5px;
 }
 .box-wrap .box div {
-  _opacity: 0;
-  transition: all .6s linear;
+  transition: all .4s linear;
   transform-style: preserve-3d;
   position: absolute;
   top: 0;
@@ -86,15 +91,14 @@ html { box-sizing: border-box; }
   background-color: #ccc;
   transform: rotateY(0deg);
   z-index: 2;
-  opacity: .8;
 }
 .box-wrap .box div.back {
   transform: rotateY(-180deg);
   z-index: 1;
 }
-.box-wrap .box.active div,
-.box-wrap .box.selected div {
-  _opacity: 1;
+.box-wrap .box.active,
+.box-wrap .box.selected {
+  pointer-events: none;
 }
 .box-wrap .box.active {
   cursor: default;
@@ -122,7 +126,7 @@ html { box-sizing: border-box; }
   color: #fff;
   box-shadow: 0 0 10px rgba(0, 0, 0, .5);
   font-size: 9px;
-  animation: scale .2s cubic-bezier(0.64, 0.57, 0.67, 1.53) .6s forwards;
+  animation: scale .2s cubic-bezier(0.64, 0.57, 0.67, 1.53) .3s forwards;
   transform: scale(0);
 }
 .finished .msg-finished {
@@ -139,6 +143,8 @@ html { box-sizing: border-box; }
   margin: auto;
   background-color: rgba(255,255,255,.9);
   z-index: 2;
+  animation: fadeIn .2s cubic-bezier(0.64, 0.57, 0.67, 1.53) .6s forwards;
+  opacity: 0;
 }
 .msg-finished h3 {
   margin: 0;
@@ -163,22 +169,55 @@ html { box-sizing: border-box; }
     transform: scale(1);
   }
 }
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.scores {
+  padding: 10px 2px;
+}
+.scores label {
+  opacity: 0.4;
+  font-weight: normal;
+}
+.scores .score {
+  font-weight: bold;
+}
+.scores .past-score {
+  font-size: 12px;
+}
+.scores .past-score label {
+  font-size: 10px;
+}
 </style>
 </head>
 <body>
 
-<div id="app" :class="{finished: activeColors.length == colors.length / 2}">
-  <div class="content d-f">
+<div id="app" :class="{finished: activeColors.length == colors.length / matchLimit}">
+  <div class="content d-f fd-c">
 
-    <div class="box-wrap f-1 d-f fw-w" :class="{loading: selectedIndex.length > 1}">
+    <header class="main d-f ai-c jc-sb">
+      <div class="scores">
+        <div class="score"><label>Score</label> {{timeSpent}}</div>
+        <div class="past-score" v-if="yourBest"><label>Your best</label> {{yourBest}}</div>
+      </div>
+      <div></div>
+    </header>
+
+    <div class="box-wrap f-1 d-f fw-w" :class="{loading: loading}">
       <div class="box d-f"
         v-for="(color, idx) in colors"
-        @click.prevent="activeColors.includes(color) || selectedIndex.includes(idx) ? null : handleClick(idx)"
+        :title="color"
         :class="{
           active   : activeColors.includes(color),
           selected : selectedIndex.includes(idx)
         }"
-        :title="color"
+        @click.prevent="handleClick(idx)"
       >
         <div class="front f-1 d-f ai-c jc-c"></div>
         <div class="back f-1 d-f ai-c jc-c" :style="{background: color}"></div>
@@ -198,36 +237,82 @@ html { box-sizing: border-box; }
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.1.10/vue.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.min.js"></script>
+
 <script>
-const colors = ['#02C5DA', '#FECE08', '#F67456', '#A6622A', '#89AFD0', '#FCADEA'];
-const app = new Vue({
+const _APP = new Vue({
   el: '#app',
   data: {
+    colorLimit    : 8,
+    matchLimit    : 2,
     colors        : [],
     selectedIndex : [],
     activeColors  : [],
+    loading       : false,
+    timeSpent     : 0,
+    scores        : [],
+    timerId       : null
+
+  },
+  watch: {
+    colorLimit() { this.reset(); },
+    matchLimit() { this.reset(); }
+  },
+  computed: {
+    yourBest() {
+      return this.scores.length ? Math.min(...this.scores) : false
+    }
   },
   methods: {
     handleClick(idx) {
       const color = this.colors[idx];
+      const firstSelectedColor = this.colors[this.selectedIndex[0]];
       if(!this.selectedIndex.length) {
         this.selectedIndex.push(idx);
-      } else {
-        if(this.colors[this.selectedIndex[0]] == color) {
-          this.activeColors.push(color);
-          this.selectedIndex = [];
+        return;
+      }
+      if(this.selectedIndex.length < this.matchLimit) {
+        if(firstSelectedColor == color) {
+          this.selectedIndex.push(idx);
+          if(this.selectedIndex.length == this.matchLimit) {
+            this.activeColors.push(color);
+            this.selectedIndex = [];
+          }
         } else {
           this.selectedIndex.push(idx);
+          this.loading = true;
           setTimeout(() => {
+            this.loading = false;
             this.selectedIndex = [];
-          }, 1000);
+          }, 500);
         }
+      }
+      if(this.activeColors.length * this.matchLimit == this.colors.length) {
+        this.scores.push(this.timeSpent);
+        if(this.timerId) clearInterval(this.timerId);
+
+        const key = `color-box-${this.colorLimit}-${this.matchLimit}`;
+        localStorage.setItem(key, JSON.stringify(this.scores));
       }
     },
     reset() {
-      this.colors = [...colors, ...colors].sort(e => .5-Math.random());
+      const colors = randomColor({count: this.colorLimit});
+      this.colors = [...Array(this.matchLimit)].map(v => colors)
+        .reduce((r, v) => [...r, ...v], [])
+        .sort(e => .5-Math.random());
+
       this.selectedIndex = [];
       this.activeColors = [];
+      this.timeSpent = 0;
+
+      const scores = localStorage.getItem(`color-box-${this.colorLimit}-${this.matchLimit}`) || '[]';
+      try {
+        this.scores = JSON.parse(scores);
+      } catch(e) {
+        this.scores = [];
+      }
+
+      this.timerId = setInterval(() => ++this.timeSpent, 1000);
     }
   },
   mounted() {
@@ -237,3 +322,4 @@ const app = new Vue({
 </script>
 </body>
 </html>
+
