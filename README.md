@@ -2,8 +2,8 @@
 Simple game with Vuejs
 
 ### Screenshots
-![Screenshot](https://hamidweb.github.io/vue-color-box/screenshots/1.png)
+<img src="https://hamidweb.github.io/vue-color-box/screenshots/1.png" width="400" />
 
-![Screenshot](https://hamidweb.github.io/vue-color-box/screenshots/2.png)
+<img src="https://hamidweb.github.io/vue-color-box/screenshots/2.png" width="400" />
 
-![Screenshot](https://hamidweb.github.io/vue-color-box/screenshots/3.png)
+<img src="https://hamidweb.github.io/vue-color-box/screenshots/3.png" width="400" />
